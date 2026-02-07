@@ -1,8 +1,14 @@
+import { Link } from "react-router-dom";
+
 function Header({ onLogout, onOpenSettings }) {
   return (
     <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-4">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-900 text-white shadow-sm">
+        <Link
+          to="/"
+          aria-label="الرجوع للرئيسية"
+          className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-900 text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
           <svg
             viewBox="0 0 24 24"
             className="h-6 w-6"
@@ -17,7 +23,7 @@ function Header({ onLogout, onOpenSettings }) {
             <path d="M5 20V9l7-5 7 5v11" />
             <path d="M9 20v-6h6v6" />
           </svg>
-        </div>
+        </Link>
         <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
           نظام إدارة المشاريع والمقاولات
         </h1>
