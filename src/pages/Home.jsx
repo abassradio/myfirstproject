@@ -189,12 +189,20 @@ function Home({ onLogout, onOpenSettings }) {
   const [projects, setProjects] = useState(resolvedProjects);
   const [projectData, setProjectData] = useState(resolvedProjectData);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState(null);
   const [newProject, setNewProject] = useState({
     name: "",
     address: "",
     area: "",
     startDate: "",
     crewIds: [],
+  });
+  const [editProject, setEditProject] = useState({
+    name: "",
+    address: "",
+    area: "",
+    startDate: "",
   });
   const [newCrewName, setNewCrewName] = useState("");
 
@@ -273,8 +281,28 @@ function Home({ onLogout, onOpenSettings }) {
     setIsProjectModalOpen(false);
   };
 
+  const handleOpenEditProjectModal = (project) => {
+    setEditingProjectId(project.id);
+    setEditProject({
+      name: project.name || "",
+      address: project.address || "",
+      area: project.area || "",
+      startDate: project.startDate || "",
+    });
+    setIsEditProjectModalOpen(true);
+  };
+
+  const handleCloseEditProjectModal = () => {
+    setIsEditProjectModalOpen(false);
+    setEditingProjectId(null);
+  };
+
   const handleProjectFieldChange = (field, value) => {
     setNewProject((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditProjectFieldChange = (field, value) => {
+    setEditProject((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleToggleCrewSelection = (crewId) => {
@@ -325,6 +353,39 @@ function Home({ onLogout, onOpenSettings }) {
     }));
 
     setIsProjectModalOpen(false);
+  };
+
+  const handleSaveProjectEdits = () => {
+    if (!editingProjectId || !editProject.name.trim()) return;
+
+    setProjects((prev) =>
+      prev.map((project) =>
+        project.id === editingProjectId
+          ? {
+              ...project,
+              name: editProject.name.trim(),
+              address: editProject.address.trim(),
+              area: editProject.area,
+              startDate: editProject.startDate,
+            }
+          : project,
+      ),
+    );
+
+    setIsEditProjectModalOpen(false);
+    setEditingProjectId(null);
+  };
+
+  const handleDeleteProject = (projectId) => {
+    setProjects((prev) => prev.filter((project) => project.id !== projectId));
+    setProjectData((prev) => {
+      const { [projectId]: removed, ...rest } = prev;
+      return rest;
+    });
+    if (activeProjectId === projectId) {
+      setActiveProjectId(null);
+      setActiveCrewId(null);
+    }
   };
 
   const handleAddRow = () => {
@@ -631,6 +692,51 @@ function Home({ onLogout, onOpenSettings }) {
                   >
                     عرض الكوادر والحسابات
                   </button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-slate-300 px-4 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                      onClick={() => handleOpenEditProjectModal(project)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                      تعديل
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-rose-200 px-4 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700"
+                      onClick={() => handleDeleteProject(project.id)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M6 6l1 14h10l1-14" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                      </svg>
+                      حذف
+                    </button>
+                  </div>
                 </article>
               ))}
             </section>
@@ -1077,6 +1183,96 @@ function Home({ onLogout, onOpenSettings }) {
                 type="button"
                 className="min-h-[44px] rounded-full border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
                 onClick={handleCloseProjectModal}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isEditProjectModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-6">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xl font-semibold text-slate-900">
+                تعديل بيانات المشروع
+              </h3>
+              <button
+                type="button"
+                className="min-h-[40px] rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                onClick={handleCloseEditProjectModal}
+              >
+                إغلاق
+              </button>
+            </div>
+            <p className="mt-3 text-sm text-slate-600">
+              عدل البيانات الأساسية للمشروع بسهولة وباللغة العربية.
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <label className="space-y-2 text-sm font-semibold text-slate-700">
+                اسم المشروع
+                <input
+                  type="text"
+                  value={editProject.name}
+                  onChange={(event) =>
+                    handleEditProjectFieldChange("name", event.target.value)
+                  }
+                  placeholder="مثال: مجمع الورد"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-normal text-slate-700 focus:border-slate-900 focus:outline-none"
+                />
+              </label>
+              <label className="space-y-2 text-sm font-semibold text-slate-700">
+                عنوان المشروع
+                <input
+                  type="text"
+                  value={editProject.address}
+                  onChange={(event) =>
+                    handleEditProjectFieldChange("address", event.target.value)
+                  }
+                  placeholder="مثال: بغداد - اليرموك"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-normal text-slate-700 focus:border-slate-900 focus:outline-none"
+                />
+              </label>
+              <label className="space-y-2 text-sm font-semibold text-slate-700">
+                المساحة الكلية (م2)
+                <input
+                  type="number"
+                  min="0"
+                  value={editProject.area}
+                  onChange={(event) =>
+                    handleEditProjectFieldChange("area", event.target.value)
+                  }
+                  className="min-h-[44px] w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-normal text-slate-700 focus:border-slate-900 focus:outline-none"
+                />
+              </label>
+              <label className="space-y-2 text-sm font-semibold text-slate-700">
+                تاريخ البدء
+                <input
+                  type="date"
+                  value={editProject.startDate}
+                  onChange={(event) =>
+                    handleEditProjectFieldChange(
+                      "startDate",
+                      event.target.value,
+                    )
+                  }
+                  className="min-h-[44px] w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-normal text-slate-700 focus:border-slate-900 focus:outline-none"
+                />
+              </label>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="min-h-[44px] rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
+                onClick={handleSaveProjectEdits}
+              >
+                حفظ التعديلات
+              </button>
+              <button
+                type="button"
+                className="min-h-[44px] rounded-full border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                onClick={handleCloseEditProjectModal}
               >
                 إلغاء
               </button>
