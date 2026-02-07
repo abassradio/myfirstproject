@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Header from "../components/Header";
+import { useLocation } from "react-router-dom";
 
 const storageKey = "vibe-contracting-data";
 
@@ -173,7 +173,8 @@ const migrateLegacyData = (stored) => {
   return { projects: migratedProjects, projectData };
 };
 
-function Home({ onLogout, onOpenSettings }) {
+function Home({ resetToken = 0 }) {
+  const location = useLocation();
   const storedData = loadStoredData();
   const migratedLegacy = migrateLegacyData(storedData);
   const resolvedProjects =
@@ -205,6 +206,18 @@ function Home({ onLogout, onOpenSettings }) {
     startDate: "",
   });
   const [newCrewName, setNewCrewName] = useState("");
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setActiveProjectId(null);
+      setActiveCrewId(null);
+    }
+  }, [location.key, location.pathname]);
+
+  useEffect(() => {
+    setActiveProjectId(null);
+    setActiveCrewId(null);
+  }, [resetToken]);
 
   const activeProject = useMemo(
     () => projects.find((project) => project.id === activeProjectId) || null,
@@ -633,451 +646,447 @@ function Home({ onLogout, onOpenSettings }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-sky-100">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 pb-16 pt-10">
-        <Header onLogout={onLogout} onOpenSettings={onOpenSettings} />
+    <>
+      {!activeProject ? (
+        <>
+          <section className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+              مشاريع الشركة الهندسية
+            </p>
+            <h2 className="text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
+              قائمة المشاريع الحالية
+            </h2>
+            <button
+              type="button"
+              className="min-h-[44px] rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
+              onClick={handleOpenProjectModal}
+            >
+              إضافة مشروع جديد
+            </button>
+          </section>
 
-        {!activeProject ? (
-          <>
-            <section className="space-y-4">
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <article
+                key={project.id}
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    {project.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    العنوان:{" "}
+                    <span className="font-semibold">
+                      {project.address || "-"}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    المساحة:{" "}
+                    <span className="font-semibold">
+                      {project.area
+                        ? Number(project.area).toLocaleString("en-US")
+                        : "-"}{" "}
+                      م2
+                    </span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    الحالة:{" "}
+                    <span className="font-semibold">{project.status}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
+                  onClick={() => handleSelectProject(project)}
+                >
+                  عرض الكوادر والحسابات
+                </button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md"
+                    onClick={() => handleOpenEditProjectModal(project)}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    تعديل
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-red-50 px-4 py-1 text-xs font-semibold text-red-600 transition hover:-translate-y-0.5 hover:bg-red-100"
+                    onClick={() => handleDeleteProject(project.id)}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M6 6l1 14h10l1-14" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                    حذف
+                  </button>
+                </div>
+              </article>
+            ))}
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
-                مشاريع الشركة الهندسية
+                تفاصيل المشروع
               </p>
               <h2 className="text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
-                قائمة المشاريع الحالية
+                {activeProject.name}
               </h2>
+              <p className="text-sm text-slate-600">
+                العنوان:{" "}
+                <span className="font-semibold">
+                  {activeProject.address || "-"}
+                </span>
+              </p>
+              <p className="text-sm text-slate-600">
+                المساحة:{" "}
+                <span className="font-semibold">
+                  {activeProject.area
+                    ? Number(activeProject.area).toLocaleString("en-US")
+                    : "-"}{" "}
+                  م2
+                </span>
+              </p>
+              <p className="text-sm text-slate-600">
+                تاريخ البدء:{" "}
+                <span className="font-semibold">
+                  {activeProject.startDate || "-"}
+                </span>
+              </p>
+              <p className="text-sm text-slate-600">
+                الحالة:{" "}
+                <span className="font-semibold">{activeProject.status}</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+              onClick={handleBackToProjects}
+            >
+              عودة
+            </button>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xl font-semibold text-slate-900">
+              قائمة الكوادر
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {(activeProject.crews || []).map((crew) => (
+                <button
+                  key={crew.id}
+                  type="button"
+                  className={`min-h-[44px] rounded-full border px-5 py-2 text-sm font-semibold transition ${
+                    activeCrewId === crew.id
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-300 bg-white text-slate-700 hover:border-slate-900 hover:text-slate-900"
+                  }`}
+                  onClick={() => setActiveCrewId(crew.id)}
+                >
+                  {crew.name}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="text"
+                value={newCrewName}
+                onChange={(event) => setNewCrewName(event.target.value)}
+                placeholder="إضافة كادر جديد (مثال: نجار)"
+                className="min-h-[44px] flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+              />
               <button
                 type="button"
                 className="min-h-[44px] rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
-                onClick={handleOpenProjectModal}
+                onClick={handleAddCrewToProject}
               >
-                إضافة مشروع جديد
+                إضافة كادر جديد
               </button>
-            </section>
+            </div>
+          </section>
 
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project) => (
-                <article
-                  key={project.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-md"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      {project.name}
-                    </h3>
-                    <p className="mt-2 text-sm text-slate-600">
-                      العنوان:{" "}
-                      <span className="font-semibold">
-                        {project.address || "-"}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      المساحة:{" "}
-                      <span className="font-semibold">
-                        {project.area
-                          ? Number(project.area).toLocaleString("en-US")
-                          : "-"}{" "}
-                        م2
-                      </span>
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      الحالة:{" "}
-                      <span className="font-semibold">{project.status}</span>
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
-                    onClick={() => handleSelectProject(project)}
-                  >
-                    عرض الكوادر والحسابات
-                  </button>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-slate-300 px-4 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-                      onClick={() => handleOpenEditProjectModal(project)}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                      </svg>
-                      تعديل
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-rose-200 px-4 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700"
-                      onClick={() => handleDeleteProject(project.id)}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M3 6h18" />
-                        <path d="M8 6V4h8v2" />
-                        <path d="M6 6l1 14h10l1-14" />
-                        <path d="M10 11v6" />
-                        <path d="M14 11v6" />
-                      </svg>
-                      حذف
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </section>
-          </>
-        ) : (
-          <>
-            <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
-                  تفاصيل المشروع
-                </p>
-                <h2 className="text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
-                  {activeProject.name}
-                </h2>
-                <p className="text-sm text-slate-600">
-                  العنوان:{" "}
-                  <span className="font-semibold">
-                    {activeProject.address || "-"}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-600">
-                  المساحة:{" "}
-                  <span className="font-semibold">
-                    {activeProject.area
-                      ? Number(activeProject.area).toLocaleString("en-US")
-                      : "-"}{" "}
-                    م2
-                  </span>
-                </p>
-                <p className="text-sm text-slate-600">
-                  تاريخ البدء:{" "}
-                  <span className="font-semibold">
-                    {activeProject.startDate || "-"}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-600">
-                  الحالة:{" "}
-                  <span className="font-semibold">{activeProject.status}</span>
-                </p>
-              </div>
-              <button
-                type="button"
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-                onClick={handleBackToProjects}
-              >
-                عودة
-              </button>
-            </section>
-
+          {activeCrew ? (
             <section className="space-y-4">
-              <h3 className="text-xl font-semibold text-slate-900">
-                قائمة الكوادر
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {(activeProject.crews || []).map((crew) => (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-xl font-semibold text-slate-900">
+                  جدول الذرعة - {activeCrew.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-600">
+                    يتم احتساب المجموع تلقائيا
+                  </span>
                   <button
-                    key={crew.id}
                     type="button"
-                    className={`min-h-[44px] rounded-full border px-5 py-2 text-sm font-semibold transition ${
-                      activeCrewId === crew.id
-                        ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:border-slate-900 hover:text-slate-900"
-                    }`}
-                    onClick={() => setActiveCrewId(crew.id)}
+                    className="min-h-[44px] rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
+                    onClick={handleAddRow}
                   >
-                    {crew.name}
+                    إضافة سطر جديد
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    className="min-h-[44px] rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                    onClick={handlePrintCrew}
+                  >
+                    تصدير كـ PDF / طباعة
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <input
-                  type="text"
-                  value={newCrewName}
-                  onChange={(event) => setNewCrewName(event.target.value)}
-                  placeholder="إضافة كادر جديد (مثال: نجار)"
-                  className="min-h-[44px] flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  className="min-h-[44px] rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
-                  onClick={handleAddCrewToProject}
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur">
+                <table className="w-full text-right text-sm text-slate-700">
+                  <thead className="bg-slate-900 text-xs uppercase tracking-wider text-white">
+                    <tr>
+                      <th className="px-4 py-3">ت</th>
+                      <th className="px-4 py-3">التاريخ</th>
+                      <th className="px-4 py-3">اسم المادة / العمل</th>
+                      <th className="px-4 py-3">نوع القياس</th>
+                      <th className="px-4 py-3">سعر الوحدة</th>
+                      <th className="px-4 py-3">العدد / الكمية</th>
+                      <th className="px-4 py-3">المجموع</th>
+                      <th className="px-4 py-3">إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeRows.map((item, index) => {
+                      const rowTotal =
+                        Number(item.quantity || 0) * Number(item.price || 0);
+
+                      return (
+                        <tr
+                          key={item.id}
+                          className="border-b border-slate-100 last:border-b-0"
+                        >
+                          <td className="px-4 py-3 font-semibold text-slate-900">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.isEditing ? (
+                              <input
+                                type="date"
+                                value={item.date}
+                                onChange={(event) =>
+                                  handleRowChange(
+                                    item.id,
+                                    "date",
+                                    event.target.value,
+                                  )
+                                }
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+                              />
+                            ) : (
+                              <span>{item.date || "-"}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.isEditing ? (
+                              <input
+                                type="text"
+                                value={item.material}
+                                onChange={(event) =>
+                                  handleRowChange(
+                                    item.id,
+                                    "material",
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder="مثال: صبغ حائط"
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+                              />
+                            ) : (
+                              <span className="font-semibold text-slate-900">
+                                {item.material || "-"}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.isEditing ? (
+                              <select
+                                value={item.unit}
+                                onChange={(event) =>
+                                  handleRowChange(
+                                    item.id,
+                                    "unit",
+                                    event.target.value,
+                                  )
+                                }
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+                              >
+                                {measurementOptions.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span>{item.unit}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.isEditing ? (
+                              <input
+                                type="number"
+                                min="0"
+                                value={item.price}
+                                onChange={(event) =>
+                                  handleRowChange(
+                                    item.id,
+                                    "price",
+                                    event.target.value,
+                                  )
+                                }
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+                              />
+                            ) : (
+                              <span>{formatIQD(item.price || 0)}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.isEditing ? (
+                              <input
+                                type="number"
+                                min="0"
+                                value={item.quantity}
+                                onChange={(event) =>
+                                  handleRowChange(
+                                    item.id,
+                                    "quantity",
+                                    event.target.value,
+                                  )
+                                }
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
+                              />
+                            ) : (
+                              <span>{item.quantity || "-"}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-slate-900">
+                            {formatIQD(rowTotal)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                className="min-h-[40px] rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                                onClick={() => handleToggleEdit(item.id)}
+                              >
+                                {item.isEditing ? "حفظ" : "تعديل"}
+                              </button>
+                              <button
+                                type="button"
+                                className="min-h-[40px] rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700"
+                                onClick={() => handleDeleteRow(item.id)}
+                              >
+                                حذف
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="bg-slate-50">
+                    <tr>
+                      <td
+                        className="px-4 py-3 text-sm text-slate-600"
+                        colSpan={6}
+                      >
+                        المجموع الكلي للحساب
+                      </td>
+                      <td className="px-4 py-3 text-base font-semibold text-slate-900">
+                        {formatIQD(totalAmount)}
+                      </td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    المجموع الكلي للذرعة
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-900">
+                    {formatIQD(totalAmount)}
+                  </p>
+                </div>
+                <div
+                  className={`rounded-2xl border p-4 shadow-sm transition ${
+                    isPaidInFull
+                      ? "border-emerald-200 bg-emerald-50/80 text-emerald-700"
+                      : "border-slate-200 bg-white/80 text-slate-700"
+                  }`}
                 >
-                  إضافة كادر جديد
-                </button>
+                  <p className="text-xs font-semibold uppercase tracking-wider">
+                    المبلغ الواصل / السلف
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={
+                      projectData[activeProject.id]?.crewFinancials?.[
+                        activeCrewId
+                      ]?.paid ?? ""
+                    }
+                    onChange={(event) => handlePaidChange(event.target.value)}
+                    className={`mt-2 w-full rounded-xl border px-3 py-2 text-sm focus:outline-none ${
+                      isPaidInFull
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400"
+                        : "border-slate-200 bg-white text-slate-700 focus:border-slate-900"
+                    }`}
+                  />
+                </div>
+                <div
+                  className={`rounded-2xl border p-4 shadow-sm ${
+                    remainingAmount <= 0
+                      ? "border-emerald-200 bg-emerald-50/80 text-emerald-700"
+                      : "border-amber-200 bg-amber-50/80 text-amber-700"
+                  }`}
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wider">
+                    المبلغ المتبقي بذمة الشركة
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {formatIQD(remainingAmount)}
+                  </p>
+                </div>
               </div>
             </section>
-
-            {activeCrew ? (
-              <section className="space-y-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="text-xl font-semibold text-slate-900">
-                    جدول الذرعة - {activeCrew.name}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-sm font-semibold text-slate-600">
-                      يتم احتساب المجموع تلقائيا
-                    </span>
-                    <button
-                      type="button"
-                      className="min-h-[44px] rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
-                      onClick={handleAddRow}
-                    >
-                      إضافة سطر جديد
-                    </button>
-                    <button
-                      type="button"
-                      className="min-h-[44px] rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-                      onClick={handlePrintCrew}
-                    >
-                      تصدير كـ PDF / طباعة
-                    </button>
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur">
-                  <table className="w-full text-right text-sm text-slate-700">
-                    <thead className="bg-slate-900 text-xs uppercase tracking-wider text-white">
-                      <tr>
-                        <th className="px-4 py-3">ت</th>
-                        <th className="px-4 py-3">التاريخ</th>
-                        <th className="px-4 py-3">اسم المادة / العمل</th>
-                        <th className="px-4 py-3">نوع القياس</th>
-                        <th className="px-4 py-3">سعر الوحدة</th>
-                        <th className="px-4 py-3">العدد / الكمية</th>
-                        <th className="px-4 py-3">المجموع</th>
-                        <th className="px-4 py-3">إجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeRows.map((item, index) => {
-                        const rowTotal =
-                          Number(item.quantity || 0) * Number(item.price || 0);
-
-                        return (
-                          <tr
-                            key={item.id}
-                            className="border-b border-slate-100 last:border-b-0"
-                          >
-                            <td className="px-4 py-3 font-semibold text-slate-900">
-                              {index + 1}
-                            </td>
-                            <td className="px-4 py-3">
-                              {item.isEditing ? (
-                                <input
-                                  type="date"
-                                  value={item.date}
-                                  onChange={(event) =>
-                                    handleRowChange(
-                                      item.id,
-                                      "date",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                                />
-                              ) : (
-                                <span>{item.date || "-"}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {item.isEditing ? (
-                                <input
-                                  type="text"
-                                  value={item.material}
-                                  onChange={(event) =>
-                                    handleRowChange(
-                                      item.id,
-                                      "material",
-                                      event.target.value,
-                                    )
-                                  }
-                                  placeholder="مثال: صبغ حائط"
-                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                                />
-                              ) : (
-                                <span className="font-semibold text-slate-900">
-                                  {item.material || "-"}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {item.isEditing ? (
-                                <select
-                                  value={item.unit}
-                                  onChange={(event) =>
-                                    handleRowChange(
-                                      item.id,
-                                      "unit",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                                >
-                                  {measurementOptions.map((option) => (
-                                    <option key={option} value={option}>
-                                      {option}
-                                    </option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <span>{item.unit}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {item.isEditing ? (
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={item.price}
-                                  onChange={(event) =>
-                                    handleRowChange(
-                                      item.id,
-                                      "price",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                                />
-                              ) : (
-                                <span>{formatIQD(item.price || 0)}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {item.isEditing ? (
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={item.quantity}
-                                  onChange={(event) =>
-                                    handleRowChange(
-                                      item.id,
-                                      "quantity",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-900 focus:outline-none"
-                                />
-                              ) : (
-                                <span>{item.quantity || "-"}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 font-semibold text-slate-900">
-                              {formatIQD(rowTotal)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  className="min-h-[40px] rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-                                  onClick={() => handleToggleEdit(item.id)}
-                                >
-                                  {item.isEditing ? "حفظ" : "تعديل"}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="min-h-[40px] rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700"
-                                  onClick={() => handleDeleteRow(item.id)}
-                                >
-                                  حذف
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-slate-50">
-                      <tr>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-600"
-                          colSpan={6}
-                        >
-                          المجموع الكلي للحساب
-                        </td>
-                        <td className="px-4 py-3 text-base font-semibold text-slate-900">
-                          {formatIQD(totalAmount)}
-                        </td>
-                        <td className="px-4 py-3"></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      المجموع الكلي للذرعة
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-slate-900">
-                      {formatIQD(totalAmount)}
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-2xl border p-4 shadow-sm transition ${
-                      isPaidInFull
-                        ? "border-emerald-200 bg-emerald-50/80 text-emerald-700"
-                        : "border-slate-200 bg-white/80 text-slate-700"
-                    }`}
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-wider">
-                      المبلغ الواصل / السلف
-                    </p>
-                    <input
-                      type="number"
-                      min="0"
-                      value={
-                        projectData[activeProject.id]?.crewFinancials?.[
-                          activeCrewId
-                        ]?.paid ?? ""
-                      }
-                      onChange={(event) => handlePaidChange(event.target.value)}
-                      className={`mt-2 w-full rounded-xl border px-3 py-2 text-sm focus:outline-none ${
-                        isPaidInFull
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400"
-                          : "border-slate-200 bg-white text-slate-700 focus:border-slate-900"
-                      }`}
-                    />
-                  </div>
-                  <div
-                    className={`rounded-2xl border p-4 shadow-sm ${
-                      remainingAmount <= 0
-                        ? "border-emerald-200 bg-emerald-50/80 text-emerald-700"
-                        : "border-amber-200 bg-amber-50/80 text-amber-700"
-                    }`}
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-wider">
-                      المبلغ المتبقي بذمة الشركة
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {formatIQD(remainingAmount)}
-                    </p>
-                  </div>
-                </div>
-              </section>
-            ) : (
-              <section className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-sm text-slate-600">
-                اختر كادر من القائمة لعرض جدول الذرعة والحسابات.
-              </section>
-            )}
-          </>
-        )}
-      </div>
+          ) : (
+            <section className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-sm text-slate-600">
+              اختر كادر من القائمة لعرض جدول الذرعة والحسابات.
+            </section>
+          )}
+        </>
+      )}
 
       {isProjectModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-6">
@@ -1280,7 +1289,7 @@ function Home({ onLogout, onOpenSettings }) {
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }
 

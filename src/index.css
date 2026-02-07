@@ -8,6 +8,12 @@
   }
 
   body {
-    @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
+    font-family:
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif;
+    direction: rtl;
+    @apply min-h-screen bg-slate-50 text-right text-slate-900 antialiased leading-relaxed;
   }
 }

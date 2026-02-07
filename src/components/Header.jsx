@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 
-function Header({ onLogout, onOpenSettings }) {
+function Header({ onLogout, onOpenSettings, onHomeClick }) {
   return (
-    <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+    <header className="sticky top-0 z-40 flex flex-col gap-6 bg-white/80 py-4 backdrop-blur-md shadow-sm shadow-slate-200/60 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-4">
         <Link
           to="/"
           aria-label="الرجوع للرئيسية"
-          className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-900 text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:text-indigo-600 hover:shadow-md"
+          onClick={onHomeClick}
         >
           <svg
             viewBox="0 0 24 24"

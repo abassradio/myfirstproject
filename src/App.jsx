@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Route, Routes } from "react-router-dom";
+import Header from "./components/Header";
 import Home from "./pages/Home";
 
 const authStorageKey = "vibe-authenticated";
@@ -251,6 +253,7 @@ function App() {
     return stored === "true";
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [homeResetToken, setHomeResetToken] = useState(0);
 
   // Save initial account credentials and start an authenticated session.
   const handleCreateAccount = (nextCredentials) => {
@@ -283,6 +286,10 @@ function App() {
     setIsSettingsOpen(false);
   };
 
+  const handleHomeClick = () => {
+    setHomeResetToken((prev) => prev + 1);
+  };
+
   if (!credentials) {
     return <CreateAccount onCreate={handleCreateAccount} />;
   }
@@ -292,11 +299,17 @@ function App() {
   }
 
   return (
-    <>
-      <Home
-        onLogout={handleLogout}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-      />
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 pb-16 pt-10">
+        <Header
+          onLogout={handleLogout}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onHomeClick={handleHomeClick}
+        />
+        <Routes>
+          <Route path="/" element={<Home resetToken={homeResetToken} />} />
+        </Routes>
+      </div>
       <AccountSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -304,7 +317,7 @@ function App() {
         currentUsername={credentials.username}
         currentPassword={credentials.password}
       />
-    </>
+    </div>
   );
 }
 
