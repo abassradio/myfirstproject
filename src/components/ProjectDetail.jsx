@@ -89,6 +89,7 @@ function ProjectDetail({
           <style>
             body { font-family: Arial, sans-serif; color: #0f172a; margin: 32px; }
             h1, h2, h3 { margin: 0 0 8px; }
+              <div>المصدّر: ${displayName || "مستخدم"}</div>
             .meta { margin-bottom: 16px; font-size: 14px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border: 1px solid #e2e8f0; padding: 8px; font-size: 13px; text-align: right; }

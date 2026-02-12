@@ -185,15 +185,17 @@ export const useProjectData = () => {
 
   const [projects, setProjects] = useState(resolvedProjects);
   const [projectData, setProjectData] = useState(resolvedProjectData);
-  const { displayName } = useAuthContext();
+  const { displayName, user } = useAuthContext();
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchProjects = async () => {
+      if (!user) return;
       const { data, error } = await supabase
         .from("projects")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -255,6 +257,8 @@ export const useProjectData = () => {
       area: projectInput.area || null,
       start_date: projectInput.startDate || null,
       status: "قيد التنفيذ",
+      user_id: user?.id || null,
+      created_by: displayName || null,
     };
     // attach creator name (from auth metadata) if available
     if (displayName) payload.created_by = displayName;

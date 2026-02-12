@@ -8,6 +8,7 @@ import {
   ProjectCreateModal,
   ProjectEditModal,
 } from "@/components/ProjectModals";
+import CrewGateway from "@/components/CrewGateway";
 
 function Home({ resetToken = 0 }) {
   const location = useLocation();
@@ -32,6 +33,7 @@ function Home({ resetToken = 0 }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCrewGatewayOpen, setIsCrewGatewayOpen] = useState(false);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -168,6 +170,19 @@ function Home({ resetToken = 0 }) {
         }
         isLoading={isLoading}
       />
+      <div className="mt-4">
+        <button
+          onClick={() => setIsCrewGatewayOpen(true)}
+          className="rounded-full bg-emerald-600 px-4 py-2 text-white"
+        >
+          بوابة الكوادر
+        </button>
+        {isCrewGatewayOpen && (
+          <div className="mt-4">
+            <CrewGateway onClose={() => setIsCrewGatewayOpen(false)} />
+          </div>
+        )}
+      </div>
     </>
   );
 }
