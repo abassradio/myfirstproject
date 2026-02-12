@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-function Header({ onLogout, onOpenSettings, onHomeClick }) {
+function Header({ userDisplayName, onLogout, onHomeClick }) {
   return (
     <header className="sticky top-0 z-40 flex flex-col gap-6 bg-white/80 py-4 backdrop-blur-md shadow-sm shadow-slate-200/60 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-4">
@@ -30,16 +30,10 @@ function Header({ onLogout, onOpenSettings, onHomeClick }) {
         </h1>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        {onOpenSettings ? (
-          <button
-            type="button"
-            className="min-h-[44px] rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
-            onClick={onOpenSettings}
-          >
-            إعدادات الحساب
-          </button>
-        ) : null}
-        {onLogout ? (
+        <span className="text-sm text-slate-600 font-medium">
+          {userDisplayName || "مستخدم"}
+        </span>
+        {onLogout && (
           <button
             type="button"
             className="min-h-[44px] rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
@@ -47,7 +41,7 @@ function Header({ onLogout, onOpenSettings, onHomeClick }) {
           >
             تسجيل الخروج
           </button>
-        ) : null}
+        )}
       </div>
     </header>
   );
